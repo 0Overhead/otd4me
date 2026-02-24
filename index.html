@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>OTD4Me — Find Your Vehicle v2</title>
+<title>OTD4Me — Find Your Vehicle</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <style>
@@ -1790,7 +1790,7 @@ async function loadVehicleFeed(filter) {
   feed.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
 
   try {
-    let query = db.from('vehicles').select('*, profiles(full_name, is_dealer, is_verified)').eq('status', 'active').order('created_at', { ascending: false });
+    let query = db.from('vehicles').select('*').eq('status', 'active').order('created_at', { ascending: false });
     if (filter === 'under20') query = query.lte('otd_price', 20000);
     else if (filter === 'under30') query = query.lte('otd_price', 30000);
 
@@ -1818,11 +1818,11 @@ async function loadVehicleFeed(filter) {
 function buildVehicleCard(v) {
   const photos = v.photos || [];
   const mainPhoto = photos[0] || '';
-  const isDealer = v.profiles?.is_dealer;
-  const isVerified = v.profiles?.is_verified;
+  const isDealer = false;
+  const isVerified = false;
   const price = v.otd_price ? '$' + Number(v.otd_price).toLocaleString() : 'Price TBD';
   const miles = v.mileage ? Number(v.mileage).toLocaleString() + ' mi' : '';
-  const seller = v.profiles?.full_name || 'Private Seller';
+  const seller = 'Private Seller';
 
   const photoHTML = photos.length > 0
     ? photos.map((p, i) => `<img src="${p}" class="${i === 0 ? 'active' : ''}" alt="photo ${i+1}" loading="lazy">`).join('')
@@ -1894,7 +1894,7 @@ async function loadBuyerFeed(filter) {
   feed.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
 
   try {
-    let query = db.from('buyer_requests').select('*, profiles(full_name)').eq('status', 'active').order('created_at', { ascending: false });
+    let query = db.from('buyer_requests').select('*').eq('status', 'active').order('created_at', { ascending: false });
 
     const { data, error } = await query;
     if (error) throw error;
@@ -1930,7 +1930,7 @@ function buildBuyerCard(r) {
     browsing:   { cls: 'browse', label: '🔵 Browsing',    color: '#3B82F6' },
   };
   const tl = timelineMap[r.timeline] || timelineMap['browsing'];
-  const initials = (r.profiles?.full_name || 'U').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+  const initials = ('U').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
   const avatarColors = ['#1B2F52','#0F4C75','#1B6CA8','#065F46','#7C3AED'];
   const avatarColor = avatarColors[r.id?.charCodeAt(0) % avatarColors.length] || avatarColors[0];
 
