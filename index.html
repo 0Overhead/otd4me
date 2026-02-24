@@ -1440,7 +1440,7 @@ html, body {
   <div class="dash-panel" id="dashPanel-request">
     <div class="dash-section-title">
       My Buyer Request
-      <button class="dash-add-btn" onclick="showScreen('chat')">+ AI Chat</button>
+      <button class="dash-add-btn" onclick="openAddRequest()">+ Post Request</button>
     </div>
     <div id="myRequest"><div class="loading-spinner"><div class="spinner"></div></div></div>
   </div>
@@ -1507,21 +1507,21 @@ html, body {
     <div class="form-row-2">
       <div class="form-field">
         <label class="form-label">Year</label>
-        <input class="form-input" type="number" id="fYear" placeholder="2021" min="1990" max="2026">
+        <select class="form-select" id="fYear"><option value="">Select Year</option></select>
       </div>
       <div class="form-field">
         <label class="form-label">Make</label>
-        <input class="form-input" type="text" id="fMake" placeholder="Toyota">
+        <select class="form-select" id="fMake" onchange="onMakeChange('fMake','fModel')"><option value="">Select Make</option></select>
       </div>
     </div>
     <div class="form-row-2">
       <div class="form-field">
         <label class="form-label">Model</label>
-        <input class="form-input" type="text" id="fModel" placeholder="Camry">
+        <select class="form-select" id="fModel"><option value="">Select Make First</option></select>
       </div>
       <div class="form-field">
-        <label class="form-label">Trim</label>
-        <input class="form-input" type="text" id="fTrim" placeholder="XLE (optional)">
+        <label class="form-label">Trim <span style="font-weight:400;text-transform:none;font-size:11px;">(optional)</span></label>
+        <input class="form-input" type="text" id="fTrim" placeholder="XLE, Sport, EX...">
       </div>
     </div>
     <div class="form-row-2">
@@ -1562,6 +1562,131 @@ html, body {
   </div>
 </div>
 
+
+<!-- ADD BUYER REQUEST FORM (bottom sheet) -->
+<div class="form-overlay" id="addRequestOverlay" onclick="handleRequestOverlayClick(event)">
+  <div class="form-sheet" id="addRequestSheet">
+    <div class="form-sheet-handle"></div>
+    <div class="form-sheet-title">Post a Buyer Request</div>
+    <div class="form-error" id="requestFormError"></div>
+
+    <!-- Step 1: Specific or flexible? -->
+    <div id="requestStep1">
+      <div class="form-field">
+        <label class="form-label" style="font-size:15px;text-transform:none;letter-spacing:0;">Do you have a specific vehicle in mind?</label>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="auth-type-btn" id="reqTypeYes" onclick="setRequestType('specific')" style="flex:1;padding:14px;">✅ Yes, I know what I want</button>
+          <button class="auth-type-btn" id="reqTypeNo"  onclick="setRequestType('flexible')" style="flex:1;padding:14px;">🔍 Help me find the right fit</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Specific vehicle fields -->
+    <div id="requestSpecific" style="display:none;">
+      <div class="form-row-2">
+        <div class="form-field">
+          <label class="form-label">Year (Min)</label>
+          <select class="form-select" id="rYearMin"><option value="">Any</option></select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Year (Max)</label>
+          <select class="form-select" id="rYearMax"><option value="">Any</option></select>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-field">
+          <label class="form-label">Make</label>
+          <select class="form-select" id="rMake" onchange="onMakeChange('rMake','rModel')"><option value="">Select Make</option></select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Model</label>
+          <select class="form-select" id="rModel"><option value="">Select Make First</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flexible fields -->
+    <div id="requestFlexible" style="display:none;">
+      <div class="form-field">
+        <label class="form-label">What type of vehicle do you need?</label>
+        <select class="form-select" id="rBodyType">
+          <option value="">Any type</option>
+          <option>Sedan</option>
+          <option>SUV / Crossover</option>
+          <option>Truck</option>
+          <option>Minivan</option>
+          <option>Coupe</option>
+          <option>Hatchback</option>
+          <option>Electric / Hybrid</option>
+          <option>Just needs to be reliable</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Preferred Makes <span style="font-weight:400;text-transform:none;font-size:11px;">(optional)</span></label>
+        <select class="form-select" id="rMakeFlexible" onchange="onMakeChange('rMakeFlexible','rModelFlexible')"><option value="">Open to any make</option></select>
+      </div>
+    </div>
+
+    <!-- Shared fields (shown after type selected) -->
+    <div id="requestShared" style="display:none;">
+      <div class="form-row-2">
+        <div class="form-field">
+          <label class="form-label">Max Budget (OTD)</label>
+          <select class="form-select" id="rBudget">
+            <option value="">Select budget</option>
+            <option value="5000">Under $5,000</option>
+            <option value="8000">Under $8,000</option>
+            <option value="10000">Under $10,000</option>
+            <option value="12000">Under $12,000</option>
+            <option value="15000">Under $15,000</option>
+            <option value="20000">Under $20,000</option>
+            <option value="25000">Under $25,000</option>
+            <option value="30000">Under $30,000</option>
+            <option value="35000">Under $35,000</option>
+            <option value="40000">Under $40,000</option>
+            <option value="50000">Under $50,000</option>
+            <option value="75000">Under $75,000</option>
+            <option value="100000">$75,000+</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Max Mileage</label>
+          <select class="form-select" id="rMileage">
+            <option value="">Any mileage</option>
+            <option value="30000">Under 30,000</option>
+            <option value="50000">Under 50,000</option>
+            <option value="75000">Under 75,000</option>
+            <option value="100000">Under 100,000</option>
+            <option value="125000">Under 125,000</option>
+            <option value="150000">Any mileage OK</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-field">
+          <label class="form-label">Timeline</label>
+          <select class="form-select" id="rTimeline">
+            <option value="browsing">🔵 Just Browsing</option>
+            <option value="within_60">🟡 Within 60 Days</option>
+            <option value="this_month">🟠 Within 30 Days</option>
+            <option value="asap">🔴 ASAP — This Week</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Your Zip Code</label>
+          <input class="form-input" type="text" id="rZip" placeholder="e.g. 92590" maxlength="5" inputmode="numeric">
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Description <span style="font-weight:400;text-transform:none;font-size:11px;">(optional — max 300 chars)</span></label>
+        <textarea class="form-textarea" id="rDesc" placeholder="Tell sellers what matters most to you — condition, features, color, financing needs, anything that helps them understand what you want..." maxlength="300" oninput="updateCharCount(this,'rDescCount')"></textarea>
+        <div style="text-align:right;font-size:12px;color:var(--text-muted);margin-top:4px;"><span id="rDescCount">0</span>/300</div>
+      </div>
+      <button class="form-submit" onclick="submitBuyerRequest()" id="requestSubmitBtn">Post My Request →</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -1590,6 +1715,76 @@ document.addEventListener('DOMContentLoaded', function() {
   db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   initApp();
 });
+
+
+// ── VEHICLE DATA ──
+const MAKES = ["Acura","Audi","BMW","Buick","Cadillac","Chevrolet","Chrysler","Dodge","Ford","GMC","Genesis","Honda","Hyundai","Infiniti","Jeep","Kia","Lexus","Lincoln","Mazda","Mercedes-Benz","Mitsubishi","Nissan","Ram","Subaru","Tesla","Toyota","Volkswagen","Volvo","Other"];
+
+const MODELS = {
+  "Acura": ["ILX","MDX","RDX","RLX","TLX","NSX"],
+  "Audi": ["A3","A4","A5","A6","A7","A8","Q3","Q5","Q7","Q8","e-tron","TT"],
+  "BMW": ["2 Series","3 Series","4 Series","5 Series","7 Series","X1","X2","X3","X4","X5","X6","X7","M3","M5"],
+  "Buick": ["Enclave","Encore","Envision","LaCrosse"],
+  "Cadillac": ["CT4","CT5","Escalade","XT4","XT5","XT6"],
+  "Chevrolet": ["Blazer","Camaro","Colorado","Corvette","Equinox","Express","Malibu","Silverado 1500","Silverado 2500","Suburban","Tahoe","Traverse","Trax"],
+  "Chrysler": ["300","Pacifica","Voyager"],
+  "Dodge": ["Challenger","Charger","Durango","Grand Caravan","Journey"],
+  "Ford": ["Bronco","Edge","Escape","Expedition","Explorer","F-150","F-250","F-350","Fusion","Maverick","Mustang","Ranger","Transit"],
+  "GMC": ["Acadia","Canyon","Envoy","Sierra 1500","Sierra 2500","Terrain","Yukon"],
+  "Genesis": ["G70","G80","G90","GV70","GV80"],
+  "Honda": ["Accord","Civic","CR-V","HR-V","Insight","Odyssey","Passport","Pilot","Ridgeline"],
+  "Hyundai": ["Elantra","Ioniq","Ioniq 5","Kona","Palisade","Santa Cruz","Santa Fe","Sonata","Tucson","Venue"],
+  "Infiniti": ["Q50","Q60","QX50","QX60","QX80"],
+  "Jeep": ["Cherokee","Compass","Gladiator","Grand Cherokee","Renegade","Wrangler"],
+  "Kia": ["Carnival","EV6","Forte","K5","Niro","Seltos","Soul","Sorento","Sportage","Stinger","Telluride"],
+  "Lexus": ["ES","GS","GX","IS","LC","LS","LX","NX","RX","UX"],
+  "Lincoln": ["Aviator","Corsair","Nautilus","Navigator"],
+  "Mazda": ["CX-30","CX-5","CX-50","CX-9","Mazda3","Mazda6","MX-5 Miata"],
+  "Mercedes-Benz": ["A-Class","C-Class","E-Class","G-Class","GLA","GLB","GLC","GLE","GLS","S-Class","EQS"],
+  "Mitsubishi": ["Eclipse Cross","Galant","Outlander","Outlander Sport"],
+  "Nissan": ["Altima","Armada","Frontier","Kicks","Leaf","Maxima","Murano","Pathfinder","Rogue","Sentra","Titan","Versa"],
+  "Ram": ["1500","2500","3500","ProMaster"],
+  "Subaru": ["Ascent","BRZ","Crosstrek","Forester","Impreza","Legacy","Outback","WRX"],
+  "Tesla": ["Model 3","Model S","Model X","Model Y","Cybertruck"],
+  "Toyota": ["4Runner","86","Avalon","Camry","Corolla","GR86","Highlander","Land Cruiser","Prius","RAV4","Sequoia","Sienna","Tacoma","Tundra","Venza"],
+  "Volkswagen": ["Atlas","Golf","ID.4","Jetta","Passat","Taos","Tiguan"],
+  "Volvo": ["S60","S90","V60","V90","XC40","XC60","XC90"],
+  "Other": ["Other"]
+};
+
+const YEARS = [];
+for (let y = 2026; y >= 1990; y--) YEARS.push(y);
+
+const TIMELINES = [
+  { value: 'asap',       label: '🔴 ASAP — This Week' },
+  { value: 'this_month', label: '🟠 Within 30 Days' },
+  { value: 'within_60',  label: '🟡 Within 60 Days' },
+  { value: 'browsing',   label: '🔵 Just Browsing' },
+];
+
+function populateMakeSelect(selectId, selectedVal) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select Make</option>' + MAKES.map(m => '<option value="' + m + '"' + (m === selectedVal ? ' selected' : '') + '>' + m + '</option>').join('');
+}
+
+function populateModelSelect(selectId, make, selectedVal) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const models = MODELS[make] || ['Other'];
+  sel.innerHTML = '<option value="">Select Model</option>' + models.map(m => '<option value="' + m + '"' + (m === selectedVal ? ' selected' : '') + '>' + m + '</option>').join('');
+}
+
+function populateYearSelect(selectId, selectedVal) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select Year</option>' + YEARS.map(y => '<option value="' + y + '"' + (y == selectedVal ? ' selected' : '') + '>' + y + '</option>').join('');
+}
+
+function onMakeChange(makeId, modelId) {
+  const make = document.getElementById(makeId).value;
+  populateModelSelect(modelId, make, '');
+}
 
 // ════════════════════════════════════════════
 // APP INIT
@@ -1923,6 +2118,8 @@ async function loadBuyerFeed(filter) {
 }
 
 function buildBuyerCard(r) {
+  // Use full_name from profiles if available, else anonymous
+  const displayName = r.display_name || 'Anonymous Buyer';
   const timelineMap = {
     asap:       { cls: 'hot',    label: '🔴 ASAP',       color: '#EF4444' },
     this_month: { cls: 'warm',   label: '🟠 This Month',  color: '#F97316' },
@@ -2129,6 +2326,9 @@ async function saveVehicle(e, vehicleId) {
 function openAddVehicle() {
   if (!currentUser) { requireAuth('dashboard'); return; }
   document.getElementById('addVehicleOverlay').classList.add('open');
+  populateYearSelect('fYear');
+  populateMakeSelect('fMake');
+  populateModelSelect('fModel', '', '');
 }
 
 function closeAddVehicle() {
@@ -2157,9 +2357,9 @@ function handlePhotoSelect(e) {
 }
 
 async function submitVehicle() {
-  const year  = parseInt(document.getElementById('fYear').value);
-  const make  = document.getElementById('fMake').value.trim();
-  const model = document.getElementById('fModel').value.trim();
+  const year  = document.getElementById('fYear').value ? parseInt(document.getElementById('fYear').value) : null;
+  const make  = document.getElementById('fMake').value;
+  const model = document.getElementById('fModel').value;
   const price = parseInt(document.getElementById('fPrice').value);
   const zip   = document.getElementById('fZip').value.trim();
   const miles = parseInt(document.getElementById('fMileage').value);
@@ -2169,8 +2369,8 @@ async function submitVehicle() {
   const errEl = document.getElementById('vehicleFormError');
   errEl.style.display = 'none';
 
-  if (!make)  { showFormError('Please enter the make.'); return; }
-  if (!model) { showFormError('Please enter the model.'); return; }
+  if (!make)  { showFormError('Please select the make.'); return; }
+  if (!model) { showFormError('Please select the model.'); return; }
   if (!price) { showFormError('Please enter the OTD price.'); return; }
   if (!zip || zip.length !== 5) { showFormError('Please enter a valid 5-digit zip code.'); return; }
   if (selectedPhotos.length === 0) { showFormError('Please add at least one photo.'); return; }
@@ -2657,6 +2857,122 @@ function escHtml(str) {
 function openFilterModal() {
   showToast('Advanced filters coming soon!');
 }
+
+// ════════════════════════════════════════════
+// BUYER REQUEST FORM
+// ════════════════════════════════════════════
+function openAddRequest() {
+  if (!currentUser) { requireAuth('dashboard'); return; }
+  document.getElementById('addRequestOverlay').classList.add('open');
+  // Reset form
+  document.getElementById('requestSpecific').style.display = 'none';
+  document.getElementById('requestFlexible').style.display = 'none';
+  document.getElementById('requestShared').style.display = 'none';
+  document.getElementById('reqTypeYes').classList.remove('active');
+  document.getElementById('reqTypeNo').classList.remove('active');
+  // Populate dropdowns
+  populateYearSelect('rYearMin');
+  populateYearSelect('rYearMax');
+  populateMakeSelect('rMake');
+  populateMakeSelect('rMakeFlexible');
+}
+
+function handleRequestOverlayClick(e) {
+  if (e.target === document.getElementById('addRequestOverlay')) closeAddRequest();
+}
+
+function closeAddRequest() {
+  document.getElementById('addRequestOverlay').classList.remove('open');
+}
+
+function setRequestType(type) {
+  document.getElementById('reqTypeYes').classList.toggle('active', type === 'specific');
+  document.getElementById('reqTypeNo').classList.toggle('active',  type === 'flexible');
+  document.getElementById('requestSpecific').style.display = type === 'specific' ? 'block' : 'none';
+  document.getElementById('requestFlexible').style.display = type === 'flexible' ? 'block' : 'none';
+  document.getElementById('requestShared').style.display = 'block';
+}
+
+function updateCharCount(el, countId) {
+  const counter = document.getElementById(countId);
+  if (counter) counter.textContent = el.value.length;
+}
+
+async function submitBuyerRequest() {
+  const budget   = document.getElementById('rBudget').value;
+  const zip      = document.getElementById('rZip').value.trim();
+  const timeline = document.getElementById('rTimeline').value;
+  const desc     = document.getElementById('rDesc').value.trim();
+  const mileage  = document.getElementById('rMileage').value;
+  const errEl    = document.getElementById('requestFormError');
+  errEl.style.display = 'none';
+
+  const isSpecific = document.getElementById('reqTypeYes').classList.contains('active');
+  const isFlexible = document.getElementById('reqTypeNo').classList.contains('active');
+
+  if (!isSpecific && !isFlexible) { showRequestError('Please select whether you have a specific vehicle in mind.'); return; }
+  if (!budget) { showRequestError('Please select your maximum budget.'); return; }
+  if (!zip || zip.length !== 5) { showRequestError('Please enter your 5-digit zip code.'); return; }
+
+  let make  = null, model = null, year_min = null, year_max = null, priority_type = 'budget', body_type = null;
+
+  if (isSpecific) {
+    make      = document.getElementById('rMake').value || null;
+    model     = document.getElementById('rModel').value || null;
+    year_min  = document.getElementById('rYearMin').value ? parseInt(document.getElementById('rYearMin').value) : null;
+    year_max  = document.getElementById('rYearMax').value ? parseInt(document.getElementById('rYearMax').value) : null;
+    priority_type = 'specific';
+  } else {
+    make      = document.getElementById('rMakeFlexible').value || null;
+    body_type = document.getElementById('rBodyType').value || null;
+    priority_type = body_type === 'Just needs to be reliable' ? 'reliable' : 'budget';
+  }
+
+  const btn = document.getElementById('requestSubmitBtn');
+  btn.textContent = 'Posting...';
+  btn.disabled = true;
+
+  try {
+    // Deactivate old request
+    await db.from('buyer_requests').update({ status: 'inactive' }).eq('user_id', currentUser.id);
+
+    const { error } = await db.from('buyer_requests').insert([{
+      user_id:       currentUser.id,
+      priority_type,
+      make,
+      model,
+      year_min,
+      year_max,
+      max_budget:    parseInt(budget),
+      max_mileage:   mileage ? parseInt(mileage) : null,
+      zip_code:      zip,
+      timeline,
+      notes:         body_type || null,
+      ai_summary:    desc || null,
+      status:        'active',
+    }]);
+
+    if (error) throw error;
+
+    closeAddRequest();
+    showToast('Buyer request posted! Sellers can now find you. 🎉');
+    loadBuyerFeed();
+    loadMyRequest();
+
+  } catch(e) {
+    showRequestError('Error: ' + e.message);
+  } finally {
+    btn.textContent = 'Post My Request →';
+    btn.disabled = false;
+  }
+}
+
+function showRequestError(msg) {
+  const el = document.getElementById('requestFormError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
 </script>
 </body>
 </html>
